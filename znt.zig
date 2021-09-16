@@ -157,6 +157,19 @@ pub fn Scene(comptime EntityType: type, comptime opts: SceneOptions) type {
             return eid;
         }
 
+        pub fn del(self: *Self, eid: EntityId) void {
+            const addr = self.id_map.fetchRemove(eid).?.value;
+            const ei = self.entities.get(addr).?;
+
+            inline for (comptime std.meta.fieldNames(OptionalEntity)[1..]) |_, i| {
+                if (ei.indices[i] != invalid_addr) {
+                    self.components[i].del(ei.indices[i]);
+                }
+            }
+
+            self.entities.del(addr);
+        }
+
         fn genEid(self: *Self) EntityId {
             var id = self.rng.random.int(EntityId);
             // Set UUID variant and version
