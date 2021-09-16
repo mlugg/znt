@@ -181,11 +181,32 @@ pub fn Scene(comptime EntityType: type, comptime opts: SceneOptions) type {
             return entity;
         }
 
+        pub fn getOpt(self: Self, comptime components: []const Component, eid: EntityId) ?PartialEntity(components) {
+            const addr = self.id_map.get(eid) orelse return null;
+
+            // Retrieve all components
+            var entity: PartialEntity(components) = undefined;
+            const indices = self.entities.get(addr).?.indices;
+            inline for (components) |comp| {
+                const field = std.meta.fieldInfo(Entity, comp);
+                @field(entity, field.name) = self.getComponent(comp, indices) orelse return null;
+            }
+
+            entity.id = eid;
+            return entity;
+        }
+
         /// If the entity exists, it must have the specified component
         pub fn getOne(self: Self, comptime comp: Component, eid: EntityId) ?*std.meta.fieldInfo(Entity, comp).field_type {
             const addr = self.id_map.get(eid) orelse return null;
             const indices = self.entities.get(addr).?.indices;
             return self.getComponent(comp, indices).?;
+        }
+
+        pub fn getOneOpt(self: Self, comptime comp: Component, eid: EntityId) ?*std.meta.fieldInfo(Entity, comp).field_type {
+            const addr = self.id_map.get(eid) orelse return null;
+            const indices = self.entities.get(addr).?.indices;
+            return self.getComponent(comp, indices);
         }
 
         pub fn componentByType(comptime T: type) Component {
