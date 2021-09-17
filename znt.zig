@@ -361,8 +361,8 @@ fn DataStore(comptime T: type) type {
 
         /// addr must be valid
         pub fn del(self: *Self, addr: Addr) void {
-            std.debug.assert(self.entries[addr] == .alloced);
-            self.entries[addr] = .{ .free = self.free };
+            std.debug.assert(self.entries.items[addr] == .alloced);
+            self.entries.items[addr] = .{ .free = self.free };
             self.free = addr;
             self.count -= 1;
         }
